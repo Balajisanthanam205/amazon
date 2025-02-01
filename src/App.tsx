@@ -1,93 +1,75 @@
-import React, { useState } from 'react';
-import { Header } from './components/Header';
-import { Sidebar } from './components/Sidebar';
-import { BookCard } from './components/BookCard';
-import { books } from './data/books';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Navigation } from './components/Navigation';
+import { HomePage } from './pages/HomePage';
+import { CategoryPage } from './pages/CategoryPage';
+import { generateBooks } from './data/generateBooks';
+import { Book } from './types/book';
 
 function App() {
-  const [selectedCategory, setSelectedCategory] = useState<string>('Bestsellers');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const booksPerPage = 12;
+  const [books, setBooks] = useState<Book[]>([]);
 
-  const filteredBooks = books.filter(book => {
-    const matchesCategory = book.category.includes(selectedCategory as any);
-    const matchesSearch = searchQuery === '' || 
-      book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      book.author.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  useEffect(() => {
+    const generatedBooks = generateBooks(2000);
+    setBooks(generatedBooks);
+  }, []);
 
-  const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
-  const indexOfLastBook = currentPage * booksPerPage;
-  const indexOfFirstBook = indexOfLastBook - booksPerPage;
-  const currentBooks = filteredBooks.slice(indexOfFirstBook, indexOfLastBook);
-
-  const paginate = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  if (books.length === 0) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Header onSearch={setSearchQuery} />
-      <div className="flex">
-        <Sidebar selectedCategory={selectedCategory} onSelectCategory={(category) => {
-          setSelectedCategory(category);
-          setCurrentPage(1);
-        }} />
-        <main className="flex-1 p-6 overflow-auto" style={{ height: 'calc(100vh - 64px)' }}>
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">{selectedCategory}</h1>
-            <p className="text-gray-600">
-              {searchQuery ? `Search results for "${searchQuery}"` : `Discover our latest collection of ${selectedCategory.toLowerCase()}`}
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {currentBooks.map(book => (
-              <BookCard key={book.id} book={book} />
-            ))}
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="mt-8 flex justify-center items-center gap-2">
-              <button
-                onClick={() => paginate(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="p-2 rounded-md bg-white shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
-                <button
-                  key={number}
-                  onClick={() => paginate(number)}
-                  className={`px-4 py-2 rounded-md ${
-                    currentPage === number
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  {number}
-                </button>
-              ))}
-
-              <button
-                onClick={() => paginate(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="p-2 rounded-md bg-white shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
+    <BrowserRouter>
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <Routes>
+          <Route path="/" element={<HomePage books={books} />} />
+          <Route path="/:category" element={<CategoryPage books={books} />} />
+        </Routes>
+        
+        {/* Footer */}
+        <footer className="bg-gray-900 text-white mt-16">
+          <div className="container mx-auto px-4 py-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+              <div>
+                <h3 className="text-lg font-semibold mb-4">About Us</h3>
+                <p className="text-gray-400">Your one-stop destination for all your reading needs.</p>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Customer Service</h3>
+                <ul className="space-y-2 text-gray-400">
+                  <li>Contact Us</li>
+                  <li>Shipping Information</li>
+                  <li>Returns & Exchanges</li>
+                  <li>FAQ</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+                <ul className="space-y-2 text-gray-400">
+                  <li>Bestsellers</li>
+                  <li>New Releases</li>
+                  <li>Coming Soon</li>
+                  <li>Special Offers</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Newsletter</h3>
+                <p className="text-gray-400 mb-4">Subscribe to receive updates about new books and exclusive offers.</p>
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="w-full px-4 py-2 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
             </div>
-          )}
-        </main>
+            <div className="mt-8 pt-8 border-t border-gray-800 text-center text-gray-400">
+              <p>&copy; 2024 BookStore. All rights reserved.</p>
+            </div>
+          </div>
+        </footer>
       </div>
-    </div>
+    </BrowserRouter>
   );
 }
 
