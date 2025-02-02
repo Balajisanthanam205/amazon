@@ -2,13 +2,7 @@ import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-interface PaginationProps {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-}
-
-export function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
+export function Pagination({ currentPage, totalPages, onPageChange }) {
   const pages = Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
     if (totalPages <= 5) return i + 1;
     if (currentPage <= 3) return i + 1;
@@ -64,7 +58,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
   );
 }
 
-function PaginationButton({ page, currentPage, onClick }: { page: number; currentPage: number; onClick: () => void }) {
+function PaginationButton({ page, currentPage, onClick }) {
   return (
     <motion.button
       whileHover={{ scale: 1.1 }}
